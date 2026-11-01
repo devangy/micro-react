@@ -10,12 +10,12 @@ function createElement(type, props, ...children) {
       children: children.map(child =>
         typeof child === "object"
          ? child
-         : createTextElement(child)
+         : createTextNode(child)
       )
     }
   }
 }
-function createTextElement(text) {
+function createTextNode(text) {
   return {
     type: "TEXT_ELEMENT",
     props: {
@@ -25,6 +25,25 @@ function createTextElement(text) {
   }
 }
 
+
+// using fiber tree to organize our units of work
+// each fiber is a element or a unit of work
+// next units of work parent -> child -> sibling
+function createDom(fiber) {
+  const dom =
+     fiber.type == "TEXT_ELEMENT"
+     ? createTextNode(text)
+     : createElement(fiber.type)
+
+  const isProperty = key => key !== "children"
+  Object.keys(fiber.props)
+    .filter(isProperty)
+    .forEach(name => {
+      dom[name] = fiber.props[name]
+    })
+
+  return dom
+}
 
 function render(element,container) {
   //creating dom
@@ -62,12 +81,19 @@ function workLoop(deadline) {
       nextUnitOfWork
     )
   }
+  // idletime is less than 1ms workloop exits give control back to browser
   shouldYield = deadline.timeRemaining() < 1
 
+  // resume processing elements
   requestIdleCallback(workLoop)
 }
-// init start the process
-requestIdleCallback(workLoop(deadline))
+
+
+
+// init start the process pass the cb lopp
+requestIdleCallback(workLoop)
+
+
 
 
 const MicroReact = {
