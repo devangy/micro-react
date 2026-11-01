@@ -50,6 +50,25 @@ function render(element,container) {
    container.append(dom)
 }
 
+// global pointer for initial work set to null
+let nextUnitOfWork = null
+
+// callback passing to browser deadline is automatically passed in when calling workLoop
+function workLoop(deadline) {
+  let shouldYield = false
+
+  while (nextUnitOfWork && !shouldYield) {
+    nextUnitOfWork = performUnitOfWork(
+      nextUnitOfWork
+    )
+  }
+  shouldYield = deadline.timeRemaining() < 1
+
+  requestIdleCallback(workLoop)
+}
+// init start the process
+requestIdleCallback(workLoop(deadline))
+
 
 const MicroReact = {
   createElement,
