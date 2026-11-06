@@ -93,7 +93,47 @@ function workLoop(deadline) {
 // init start the process pass the cb lopp
 requestIdleCallback(workLoop)
 
+// single unit of work takes in a fiber and does work
+function performUnitOfWork(fiber) {
+  // checking if the browser dom is created for the unit of work
+  if  (!fiber.dom) {
+      fiber.dom = createElement(fiber)
+  }
 
+  // if the fiber is not root container find the parent and attach new HTML element inside it
+  if (fiber.parent) {
+    fiber.parent.dom.appendChild(fiber.dom)
+  }
+
+  // iterating over elements to create children fiber
+  const elements = fiber.props.children
+
+  let index = 0
+  
+  let prevSibling = null
+
+  while (index < elements.length) {
+    const element = elements[index]
+
+    const newFiber {
+      type: element.type,
+      props: element.props,
+      parent: fiber
+      dom : null
+    }
+
+    if (index == 0) {
+      fiber.child = newFiber
+    } else {
+      prevSibling.sibling = newFiber
+    }
+
+    prevSibling = newFiber
+    index++
+  }
+
+
+}
 
 
 const MicroReact = {
